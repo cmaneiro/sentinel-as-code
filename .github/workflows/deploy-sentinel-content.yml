@@ -1,0 +1,106 @@
+name: Deploy Sentinel content
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy-sentinel-content.yml
+      - demo/analytics-rules/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy-sentinel-content.yml
+      - demo/analytics-rules/**
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate and preview without changing Sentinel
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate content
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate analytic rules
+        shell: pwsh
+        run: |
+          ./demo/analytics-rules/Deploy-SentinelAnalyticsRules.ps1 `
+            -SubscriptionId "00000000-0000-0000-0000-000000000000" `
+            -ResourceGroupName "demo-resource-group" `
+            -WorkspaceName "demo-workspace" `
+            -DryRun
+
+  deploy:
+    name: Deploy to Sentinel
+    needs: validate
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: gnb-demo
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      SENTINEL_RESOURCE_GROUP: ${{ vars.SENTINEL_RESOURCE_GROUP }}
+      SENTINEL_WORKSPACE_NAME: ${{ vars.SENTINEL_WORKSPACE_NAME }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Azure login with OIDC
+        if: inputs.dry_run == 'false'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Validate deployment variables
+        shell: pwsh
+        run: |
+          $required = @(
+            "AZURE_SUBSCRIPTION_ID",
+            "SENTINEL_RESOURCE_GROUP",
+            "SENTINEL_WORKSPACE_NAME"
+          )
+          if ("${{ inputs.dry_run }}" -eq "false") {
+            $required += @("AZURE_CLIENT_ID", "AZURE_TENANT_ID")
+          }
+
+          $missing = $required | Where-Object {
+            -not (Get-Item "env:$_" -ErrorAction SilentlyContinue).Value
+          }
+          if ($missing) {
+            throw "Missing GitHub environment variables: $($missing -join ', ')"
+          }
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+
+      - name: Deploy analytic rules
+        shell: pwsh
+        run: |
+          $parameters = @{
+            SubscriptionId    = $env:AZURE_SUBSCRIPTION_ID
+            ResourceGroupName = $env:SENTINEL_RESOURCE_GROUP
+            WorkspaceName     = $env:SENTINEL_WORKSPACE_NAME
+          }
+          if ("${{ inputs.dry_run }}" -eq "true") {
+            $parameters.DryRun = $true
+          }
+
+          ./demo/analytics-rules/Deploy-SentinelAnalyticsRules.ps1 @parameters

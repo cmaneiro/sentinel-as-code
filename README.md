@@ -4,6 +4,10 @@ This repo contains a subset of samples over **Azure Sentinel** for covering the 
 - DevOps use cases like Artifacts Deployment or Connector enablement
 - MITRE use cases as technical reference for different Azure Services
 
+## GitHub deployment demo
+
+The [single-workspace Analytics Rules demo](demo/analytics-rules/README.md) shows how to validate and deploy Microsoft Sentinel content from GitHub Actions using OpenID Connect (OIDC). It is intentionally generic and contains no tenant, subscription, or workspace identifiers.
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a

@@ -1,0 +1,37 @@
+{
+  "id": "ae8d9f6c-4667-40ed-971c-822f30d3b68c",
+  "kind": "Scheduled",
+  "properties": {
+    "displayName": "[Demo] Azure RBAC role assignment created",
+    "description": "Detects successful Azure RBAC role assignment creation operations. This generic demo rule is disabled by default.",
+    "severity": "High",
+    "enabled": false,
+    "query": "AzureActivity\n| where OperationNameValue =~ \"Microsoft.Authorization/roleAssignments/write\"\n| where ActivityStatusValue =~ \"Success\"\n| project TimeGenerated, Caller, CallerIpAddress, ResourceGroup, _ResourceId, OperationNameValue",
+    "queryFrequency": "PT1H",
+    "queryPeriod": "PT1H",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0,
+    "suppressionDuration": "PT5H",
+    "suppressionEnabled": false,
+    "tactics": [
+      "PrivilegeEscalation"
+    ],
+    "techniques": [
+      "T1098"
+    ],
+    "eventGroupingSettings": {
+      "aggregationKind": "SingleAlert"
+    },
+    "entityMappings": [
+      {
+        "entityType": "IP",
+        "fieldMappings": [
+          {
+            "identifier": "Address",
+            "columnName": "CallerIpAddress"
+          }
+        ]
+      }
+    ]
+  }
+}

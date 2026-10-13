@@ -93,7 +93,7 @@ foreach ($ruleFile in $ruleFiles) {
 
     $encodedResourceGroup = [uri]::EscapeDataString($ResourceGroupName)
     $encodedWorkspace = [uri]::EscapeDataString($WorkspaceName)
-    $uri = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$encodedResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$encodedWorkspace/providers/Microsoft.SecurityInsights/alertRules/$ruleId?api-version=$ApiVersion"
+    $uri = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$encodedResourceGroup/providers/Microsoft.OperationalInsights/workspaces/$encodedWorkspace/providers/Microsoft.SecurityInsights/alertRules/${ruleId}?api-version=$ApiVersion"
     $headers = @{
         Authorization = "Bearer $accessToken"
     }

@@ -47,7 +47,7 @@ jobs:
   deploy:
     name: Deploy to Sentinel
     needs: validate
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: gnb-demo
     permissions:
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Azure login with OIDC
-        if: inputs.dry_run == 'false'
+        if: github.event_name == 'push' || inputs.dry_run == 'false'
         uses: azure/login@v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
@@ -77,7 +77,7 @@ jobs:
             "SENTINEL_RESOURCE_GROUP",
             "SENTINEL_WORKSPACE_NAME"
           )
-          if ("${{ inputs.dry_run }}" -eq "false") {
+          if ("${{ github.event_name }}" -eq "push" -or "${{ inputs.dry_run }}" -eq "false") {
             $required += @("AZURE_CLIENT_ID", "AZURE_TENANT_ID")
           }
 
@@ -99,7 +99,7 @@ jobs:
             ResourceGroupName = $env:SENTINEL_RESOURCE_GROUP
             WorkspaceName     = $env:SENTINEL_WORKSPACE_NAME
           }
-          if ("${{ inputs.dry_run }}" -eq "true") {
+          if ("${{ github.event_name }}" -eq "workflow_dispatch" -and "${{ inputs.dry_run }}" -eq "true") {
             $parameters.DryRun = $true
           }
 

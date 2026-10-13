@@ -3,7 +3,7 @@
   "id": "5e808b52-9bd2-4db0-a51c-bf8395cd5521",
   "kind": "Scheduled",
   "properties": {
-    "displayName": "[Demo] Successful Azure resource deletion",
+    "displayName": "[PROD] Successful Azure resource deletion",
     "description": "Detects successful Azure resource deletion operations. This generic demo rule is deployed from GitHub and is disabled by default.",
     "severity": "Medium",
     "enabled": false,
